@@ -1,17 +1,19 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
 import io
-from flask_cors import CORS  # Para permitir solicitudes de otros dominios
+from flask_cors import CORS
+import os
 
-# Cargar el modelo entrenado
-model = load_model('model_Mnist_LeNet.h5')
+# Cargar el modelo desde la carpeta 'models'
+model = load_model('models/model_Mnist_LeNet.h5')
 
 # Crear la aplicación Flask
-app = Flask(__name__)
-CORS(app)  # Habilitar CORS para permitir solicitudes desde el frontend
+app = Flask(__name__, static_folder='frontend', static_url_path='/')
+
+CORS(app)  # Habilitar CORS para permitir solicitudes desde otros dominios
 
 # Ruta para hacer predicción
 @app.route('/predict', methods=['POST'])
@@ -32,6 +34,11 @@ def predict():
 
     # Retornar el resultado
     return jsonify({'prediction': int(predicted_class)})
+
+# Ruta para servir los archivos estáticos (HTML, CSS, JS)
+@app.route('/')
+def serve_frontend():
+    return send_from_directory(os.path.join(app.static_folder), 'index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
